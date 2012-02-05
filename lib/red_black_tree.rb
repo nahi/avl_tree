@@ -307,12 +307,15 @@ class RedBlackTree
   private
 
     # trying to rebalance when the left sub-tree is 1 level higher than the right
+    # precondition: self is black and @left is red
     def rebalance_for_left_insert
       ret = self
       if @right.red?
+        # pull-up red nodes and let the parent rebalance (see precondition)
         @color = :RED
         @left.color = @right.color = :BLACK
       else
+        # move 1 black from the left to the right by single/double rotation
         if @left.right.red?
           @left = @left.rotate_left
         end
@@ -322,6 +325,7 @@ class RedBlackTree
     end
 
     # trying to rebalance when the right sub-tree is 1 level higher than the left
+    # See rebalance_for_left_insert.
     def rebalance_for_right_insert
       ret = self
       if @left.red?
