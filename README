@@ -1,10 +1,5 @@
-avl_tree - Naive implementation of AVL tree for Ruby
+avl_tree - AVL tree and Red-black tree in Ruby
 Copyright (C) 2012 Hiroshi Nakamura <nahi@ruby-lang.org>
-
-
-== TODO
-
-It's still under development.
 
 
 == Author
