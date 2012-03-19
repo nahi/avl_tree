@@ -522,9 +522,9 @@ class TestRedBlackTree < Test::Unit::TestCase
 
   def test_to_s
     h = RedBlackTree.new
-    h[:abc] = 1
-    assert_equal 1, h["abc"]
-    assert_equal 1, h[:abc]
+    h[5] = 1
+    assert_equal 1, h[5]
+    assert_nil h["5"]
   end
 
   def test_key?
@@ -572,6 +572,14 @@ class TestRedBlackTree < Test::Unit::TestCase
     h.clear
     assert_equal 0, h.size
     assert h.to_hash.empty?
+  end
+
+  def test_non_string_keys
+    h = RedBlackTree.new
+    h[1.3] = 'a'
+    h[4.3] = 'b'
+
+    assert_equal [1.3, 'a' ], h.first
   end
 
   if RUBY_VERSION >= '1.9.0'
