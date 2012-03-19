@@ -355,17 +355,17 @@ class AVLTree
   end
 
   def []=(key, value)
-    @root = @root.insert(key.to_s, value)
+    @root = @root.insert(key, value)
   end
   alias insert []=
 
   def key?(key)
-    @root.retrieve(key.to_s) != Node::UNDEFINED
+    @root.retrieve(key) != Node::UNDEFINED
   end
   alias has_key? key?
 
   def [](key)
-    value = @root.retrieve(key.to_s)
+    value = @root.retrieve(key)
     if value == Node::UNDEFINED
       default_value
     else
@@ -374,7 +374,7 @@ class AVLTree
   end
 
   def delete(key)
-    deleted, @root = @root.delete(key.to_s)
+    deleted, @root = @root.delete(key)
     deleted.value
   end
 

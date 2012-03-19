@@ -496,19 +496,19 @@ class RedBlackTree
   end
 
   def []=(key, value)
-    @root = @root.insert(key.to_s, value)
+    @root = @root.insert(key, value)
     @root.set_root
     @root.check_height if $DEBUG
   end
   alias insert []=
 
   def key?(key)
-    @root.retrieve(key.to_s) != Node::UNDEFINED
+    @root.retrieve(key) != Node::UNDEFINED
   end
   alias has_key? key?
 
   def [](key)
-    value = @root.retrieve(key.to_s)
+    value = @root.retrieve(key)
     if value == Node::UNDEFINED
       default_value
     else
@@ -517,7 +517,7 @@ class RedBlackTree
   end
 
   def delete(key)
-    deleted, @root, rebalance = @root.delete(key.to_s)
+    deleted, @root, rebalance = @root.delete(key)
     unless empty?
       @root.set_root
       @root.check_height if $DEBUG
