@@ -1,5 +1,4 @@
 require 'benchmark'
-require 'radix_tree' # gem install radix_tree
 require 'avl_tree'
 require 'red_black_tree'
 require 'openssl'
@@ -47,7 +46,6 @@ end
 
 Benchmark.bmbm do |bm|
   run(bm, Hash.new, keys)
-  run(bm, RadixTree.new, keys)
   run(bm, AVLTree.new, keys)
   run(bm, RedBlackTree.new, keys)
 end
