@@ -394,6 +394,10 @@ class RedBlackTree
         nil
       end
 
+      def values
+        []
+      end
+
       def size
         0
       end
