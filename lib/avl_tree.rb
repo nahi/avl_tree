@@ -17,6 +17,10 @@ class AVLTree
         nil
       end
 
+      def values
+        []
+      end
+
       def size
         0
       end
