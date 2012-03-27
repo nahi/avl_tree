@@ -377,25 +377,14 @@ class RedBlackTree
       pool
     end
 
-    class EmptyNode
-      def red?
-        false
-      end
-
-      def black?
-        true
+    class EmptyNode < Node
+      def initialize
+        @value = nil
+        @color = :BLACK
       end
 
       def empty?
         true
-      end
-
-      def value
-        nil
-      end
-
-      def values
-        []
       end
 
       def size
@@ -429,7 +418,7 @@ class RedBlackTree
         # intentionally blank
       end
     end
-    EMPTY = Node::EmptyNode.new
+    EMPTY = Node::EmptyNode.new.freeze
   end
 
   DEFAULT = Object.new

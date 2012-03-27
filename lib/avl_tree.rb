@@ -4,69 +4,6 @@ class AVLTree
   class Node
     UNDEFINED = Object.new
 
-    class EmptyNode
-      def empty?
-        true
-      end
-
-      def height
-        0
-      end
-
-      def value
-        nil
-      end
-
-      def values
-        []
-      end
-
-      def size
-        0
-      end
-
-      def each(&block)
-        # intentionally blank
-      end
-
-      # returns new_root
-      def insert(key, value)
-        Node.new(key, value)
-      end
-
-      # returns value
-      def retrieve(key)
-        UNDEFINED
-      end
-
-      # returns [deleted_node, new_root]
-      def delete(key)
-        [self, self]
-      end
-
-      def dump_tree(io, indent = '')
-        # intentionally blank
-      end
-
-      def dump_sexp
-        # intentionally blank
-      end
-
-      def rotate
-        self
-      end
-
-      def update_height
-        # intentionally blank
-      end
-
-      # for debugging
-      def check_height
-        # intentionally blank
-      end
-    end
-    EMPTY = Node::EmptyNode.new
-
     attr_reader :key, :value, :height
     attr_reader :left, :right
 
@@ -289,6 +226,63 @@ class AVLTree
       end
       pool
     end
+
+    class EmptyNode < Node
+      def initialize
+        @value = nil
+        @height = 0
+      end
+
+      def empty?
+        true
+      end
+
+      def size
+        0
+      end
+
+      def each(&block)
+        # intentionally blank
+      end
+
+      # returns new_root
+      def insert(key, value)
+        Node.new(key, value)
+      end
+
+      # returns value
+      def retrieve(key)
+        UNDEFINED
+      end
+
+      # returns [deleted_node, new_root]
+      def delete(key)
+        [self, self]
+      end
+
+      def dump_tree(io, indent = '')
+        # intentionally blank
+      end
+
+      def dump_sexp
+        # intentionally blank
+      end
+
+      def rotate
+        self
+      end
+
+      def update_height
+        # intentionally blank
+      end
+
+      # for debugging
+      def check_height
+        # intentionally blank
+      end
+    end
+    EMPTY = Node::EmptyNode.new.freeze
+
   end
 
   DEFAULT = Object.new
