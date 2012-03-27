@@ -432,6 +432,12 @@ class TestAVLTree < Test::Unit::TestCase
     assert_equal [1.3, 'a' ], h.first
   end
 
+  def test_values_for_empty_tree
+    h = AVLTree.new
+
+    assert_equal [], h.values
+  end
+
   if RUBY_VERSION >= '1.9.0'
     # In contrast to RadixTree, AVLTree just uses String#<=> as-is
     def test_encoding
