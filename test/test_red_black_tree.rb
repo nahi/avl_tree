@@ -51,7 +51,7 @@ class TestRedBlackTree < Test::Unit::TestCase
     h['c'] = 6
     assert_equal '(b a (g (d c) h))', h.dump_sexp
     h['e'] = 6
-    assert_equal '(b a (g (d c e) h))', h.dump_sexp
+    assert_equal '(d (b a c) (g e h))', h.dump_sexp
     h['f'] = 6
     assert_equal '(d (b a c) (g (e - f) h))', h.dump_sexp
   end
@@ -67,7 +67,7 @@ class TestRedBlackTree < Test::Unit::TestCase
     h['0'] = 7
     h['c'] = 8
     h['e'] = 9
-    assert_equal '(g (b (a 0) (d c e)) (h - i))', h.dump_sexp
+    assert_equal '(d (b (a 0) c) (g e (h - i)))', h.dump_sexp
     h['f'] = 10
     assert_equal '(d (b (a 0) c) (g (e - f) (h - i)))', h.dump_sexp
   end
@@ -247,9 +247,9 @@ class TestRedBlackTree < Test::Unit::TestCase
     h['f'] = 8
     h['h'] = 9
     h['j'] = 10
-    assert_equal '(c (b a) (g (e d f) (i h j)))', h.dump_sexp
+    assert_equal '(e (c (b a) d) (g f (i h j)))', h.dump_sexp
     h.delete('g')
-    assert_equal '(c (b a) (h (e d f) (i - j)))', h.dump_sexp
+    assert_equal '(e (c (b a) d) (h f (i - j)))', h.dump_sexp
   end
 
   def test_delete_node_left
@@ -264,9 +264,9 @@ class TestRedBlackTree < Test::Unit::TestCase
     h['e'] = 8
     h['c'] = 9
     h['a'] = 10
-    assert_equal '(h (d (b a c) (f e g)) (i - j))', h.dump_sexp
+    assert_equal '(f (d (b a c) e) (h g (i - j)))', h.dump_sexp
     h.delete('d')
-    assert_equal '(h (e (b a c) (f - g)) (i - j))', h.dump_sexp
+    assert_equal '(f (b a (e c)) (h g (i - j)))', h.dump_sexp
   end
 
   def test_delete_root

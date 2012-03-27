@@ -67,18 +67,18 @@ class RedBlackTree
       case key <=> @key
       when -1
         @left = @left.insert(key, value)
-        if black? and @left.red? and !@left.children_both_black?
+        if black? and @right.black? and @left.red? and !@left.children_both_black?
           ret = rebalance_for_left_insert
         end
       when 0
         @value = value
       when 1
         @right = @right.insert(key, value)
-        if black? and @right.red? and !@right.children_both_black?
+        if black? and @left.black? and @right.red? and !@right.children_both_black?
           ret = rebalance_for_right_insert
         end
       end
-      ret
+      ret.pullup_red
     end
 
     # returns value
@@ -304,40 +304,40 @@ class RedBlackTree
       root
     end
 
+    # Pull up red nodes
+    # (b (A C)) where A and C are RED --> (B (a c))
+    #
+    #   b          B
+    #  / \   ->   / \
+    # A   C      a   c
+    #
+    def pullup_red
+      if black? and @left.red? and @right.red?
+        @left.color = @right.color = :BLACK
+        self.color = :RED
+      end
+      self
+    end
+
   private
 
     # trying to rebalance when the left sub-tree is 1 level higher than the right
     # precondition: self is black and @left is red
     def rebalance_for_left_insert
-      ret = self
-      if @right.red?
-        # pull-up red nodes and let the parent rebalance (see precondition)
-        @color = :RED
-        @left.color = @right.color = :BLACK
-      else
-        # move 1 black from the left to the right by single/double rotation
-        if @left.right.red?
-          @left = @left.rotate_left
-        end
-        ret = rotate_right
+      # move 1 black from the left to the right by single/double rotation
+      if @left.right.red?
+        @left = @left.rotate_left
       end
-      ret
+      rotate_right
     end
 
     # trying to rebalance when the right sub-tree is 1 level higher than the left
     # See rebalance_for_left_insert.
     def rebalance_for_right_insert
-      ret = self
-      if @left.red?
-        @color = :RED
-        @left.color = @right.color = :BLACK
-      else
-        if @right.left.red?
-          @right = @right.rotate_right
-        end
-        ret = rotate_left
+      if @right.left.red?
+        @right = @right.rotate_right
       end
-      ret
+      rotate_left
     end
 
     def delete_self
