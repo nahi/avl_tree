@@ -307,6 +307,15 @@ class TestAVLTree < Test::Unit::TestCase
     assert_equal 5, h.dump_tree.split($/).size
   end
 
+  def test_delete_different_type
+    h = AVLTree.new
+    h['a'] = 1
+    h['abc'] = 2
+    h['bb'] = 3
+
+    assert_nil h.delete(3.3)
+  end
+
   def test_each
     h = AVLTree.new
     s = { 'aa' => 1, 'ab' => 2, 'bb' => 3, 'bc' => 4, 'a' => 5, 'abc' => 6 }

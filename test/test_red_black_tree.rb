@@ -457,6 +457,15 @@ class TestRedBlackTree < Test::Unit::TestCase
     assert_equal '(f (c (b a) (d - e)) (i (g - h) (k j)))', h.dump_sexp
   end
 
+  def test_delete_different_type
+    h = RedBlackTree.new
+    h['a'] = 1
+    h['abc'] = 2
+    h['bb'] = 3
+
+    assert_nil h.delete(3.4)
+  end
+
   def test_each
     h = RedBlackTree.new
     s = { 'aa' => 1, 'ab' => 2, 'bb' => 3, 'bc' => 4, 'a' => 5, 'abc' => 6 }
