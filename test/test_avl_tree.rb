@@ -155,6 +155,15 @@ class TestAVLTree < Test::Unit::TestCase
     assert_equal 6, h.size
   end
 
+  def test_different_type
+    h = AVLTree.new
+    h['a'] = 1
+    assert_raise(TypeError) do
+      h[3.3] = 2
+    end
+    assert_nil h[3.3]
+  end
+
   def test_delete_leaf
     h = AVLTree.new
     h['b'] = 1
@@ -313,7 +322,9 @@ class TestAVLTree < Test::Unit::TestCase
     h['abc'] = 2
     h['bb'] = 3
 
-    assert_nil h.delete(3.3)
+    assert_raise(TypeError) do
+      h.delete(3.3)
+    end
   end
 
   def test_each

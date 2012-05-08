@@ -77,6 +77,8 @@ class RedBlackTree
         if black? and @left.black? and @right.red? and !@right.children_both_black?
           ret = rebalance_for_right_insert
         end
+      else
+        raise TypeError, "cannot compare #{key} and #{@key} with <=>"
       end
       ret.pullup_red
     end
@@ -90,6 +92,8 @@ class RedBlackTree
         @value
       when 1
         @right.retrieve(key)
+      else
+        nil
       end
     end
 
@@ -110,6 +114,8 @@ class RedBlackTree
         if rebalance
           ret, rebalance = rebalance_for_right_delete
         end
+      else
+        raise TypeError, "cannot compare #{key} and #{@key} with <=>"
       end
       [deleted, ret, rebalance]
     end

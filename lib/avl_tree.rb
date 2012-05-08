@@ -57,6 +57,8 @@ class AVLTree
         @value = value
       when 1
         @right = @right.insert(key, value)
+      else
+        raise TypeError, "cannot compare #{key} and #{@key} with <=>"
       end
       rotate
     end
@@ -70,6 +72,8 @@ class AVLTree
         @value
       when 1
         @right.retrieve(key)
+      else
+        nil
       end
     end
 
@@ -84,6 +88,8 @@ class AVLTree
       when 1
         deleted, @right = @right.delete(key)
         [deleted, self.rotate]
+      else
+        raise TypeError, "cannot compare #{key} and #{@key} with <=>"
       end
     end
 
