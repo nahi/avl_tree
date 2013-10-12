@@ -314,6 +314,10 @@ class AVLTree
   end
   alias length size
 
+  def height
+    @root.height
+  end
+
   def each(&block)
     if block_given?
       @root.each(&block)
