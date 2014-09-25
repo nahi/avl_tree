@@ -7,11 +7,13 @@ class RedBlackTree
     attr_reader :key, :value, :color
     attr_reader :left, :right
 
-    def initialize(key, value)
-      @key, @value = key, value
-      @left = @right = EMPTY
+    def initialize(key, value, left = EMPTY, right = EMPTY, color = :RED)
+      @key = key
+      @value = value
+      @left = left
+      @right = right
       # new node is added as RED
-      @color = :RED
+      @color = color
     end
 
     def set_root
@@ -174,12 +176,6 @@ class RedBlackTree
 
     def color_flip(other)
       @color, other.color = other.color, @color
-    end
-
-    def node_flip(other)
-      @left, other.left = other.left, @left
-      @right, other.right = other.right, @right
-      color_flip(other)
     end
 
     def delete_min
@@ -366,8 +362,8 @@ class RedBlackTree
         end
       else
         # pick the minimum node from the right sub-tree and replace self with it
-        new_root, @right, rebalance = @right.delete_min
-        new_root.node_flip(self)
+        deleted, @right, rebalance = @right.delete_min
+        new_root = Node.new(deleted.key, deleted.value, @left, @right, @color)
         if rebalance
           new_root, rebalance = new_root.rebalance_for_right_delete
         end
