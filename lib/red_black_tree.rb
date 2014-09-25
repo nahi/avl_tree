@@ -1,3 +1,5 @@
+require 'thread'
+
 class RedBlackTree
   include Enumerable
 
@@ -14,6 +16,10 @@ class RedBlackTree
       @right = right
       # new node is added as RED
       @color = color
+    end
+
+    def dup(left, right, color = @color)
+      Node.new(@key, @value, left, right, color)
     end
 
     def set_root
@@ -65,24 +71,25 @@ class RedBlackTree
 
     # returns new_root
     def insert(key, value)
-      ret = self
-      case key <=> @key
+      node = self
+      case key <=> node.key
       when -1
-        @left = @left.insert(key, value)
-        if black? and @right.black? and @left.red? and !@left.children_both_black?
-          ret = rebalance_for_left_insert
+        node = node.dup(node.left.insert(key, value), node.right)
+        if black? and node.right.black? and node.left.red? and !node.left.children_both_black?
+          node = rebalance_for_left_insert(node)
         end
       when 0
+        # TODO: is it safe?
         @value = value
       when 1
-        @right = @right.insert(key, value)
-        if black? and @left.black? and @right.red? and !@right.children_both_black?
-          ret = rebalance_for_right_insert
+        node = node.dup(node.left, node.right.insert(key, value))
+        if black? and node.left.black? and node.right.red? and !node.right.children_both_black?
+          node = rebalance_for_right_insert(node)
         end
       else
-        raise TypeError, "cannot compare #{key} and #{@key} with <=>"
+        raise TypeError, "cannot compare #{key} and #{node.key} with <=>"
       end
-      ret.pullup_red
+      node.pullup_red
     end
 
     # returns value
@@ -101,25 +108,27 @@ class RedBlackTree
 
     # returns [deleted_node, new_root, is_rebalance_needed]
     def delete(key)
-      ret = self
-      case key <=> @key
+      node = self
+      case key <=> node.key
       when -1
-        deleted, @left, rebalance = @left.delete(key)
+        deleted, left, rebalance = node.left.delete(key)
+        node = node.dup(left, node.right)
         if rebalance
-          ret, rebalance = rebalance_for_left_delete
+          node, rebalance = rebalance_for_left_delete(node)
         end
       when 0
         deleted = self
-        ret, rebalance = delete_self
+        node, rebalance = delete_node(node)
       when 1
-        deleted, @right, rebalance = @right.delete(key)
+        deleted, right, rebalance = node.right.delete(key)
+        node = node.dup(node.left, right)
         if rebalance
-          ret, rebalance = rebalance_for_right_delete
+          node, rebalance = rebalance_for_right_delete(node)
         end
       else
-        raise TypeError, "cannot compare #{key} and #{@key} with <=>"
+        raise TypeError, "cannot compare #{key} and #{node.key} with <=>"
       end
-      [deleted, ret, rebalance]
+      [deleted, node, rebalance]
     end
 
     def dump_tree(io, indent = '')
@@ -166,110 +175,104 @@ class RedBlackTree
       @color = color
     end
 
-    def left=(left)
-      @left = left
-    end
-
-    def right=(right)
-      @right = right
-    end
-
     def color_flip(other)
       @color, other.color = other.color, @color
     end
 
     def delete_min
-      if @left.empty?
-        [self, *delete_self]
+      node = self
+      if node.left.empty?
+        [self, *delete_node(node)]
       else
-        ret = self
-        deleted, @left, rebalance = @left.delete_min
+        node = self
+        deleted, left, rebalance = node.left.delete_min
+        node = node.dup(left, node.right)
         if rebalance
-          ret, rebalance = rebalance_for_left_delete
+          node, rebalance = rebalance_for_left_delete(node)
         end
-        [deleted, ret, rebalance]
+        [deleted, node, rebalance]
       end
     end
 
     # trying to rebalance when the left sub-tree is 1 level lower than the right
-    def rebalance_for_left_delete
-      ret = self
+    def rebalance_for_left_delete(node)
       rebalance = false
-      if black?
-        if @right.black?
-          if @right.children_both_black?
+      if node.black?
+        if node.right.black?
+          if node.right.children_both_black?
             # make whole sub-tree 1 level lower and ask rebalance
-            @right.color = :RED
+            node.right.color = :RED
             rebalance = true
           else
             # move 1 black from the right to the left by single/double rotation
-            ret = balanced_rotate_left
+            node = balanced_rotate_left(node)
           end
         else
           # flip this sub-tree into another type of 3-children node
-          ret = rotate_left
+          node = rotate_left(node)
           # try to rebalance in sub-tree
-          ret.left, rebalance = ret.left.rebalance_for_left_delete
+          left, rebalance = rebalance_for_left_delete(node.left)
           raise 'should not happen' if rebalance
+          node = node.dup(left, node.right)
         end
       else # red
-        if @right.children_both_black?
+        if node.right.children_both_black?
           # make right sub-tree 1 level lower
-          color_flip(@right)
+          node.color_flip(node.right)
         else
           # move 1 black from the right to the left by single/double rotation
-          ret = balanced_rotate_left
+          node = balanced_rotate_left(node)
         end
       end
-      [ret, rebalance]
+      [node, rebalance]
     end
 
     # trying to rebalance when the right sub-tree is 1 level lower than the left
     # See rebalance_for_left_delete.
-    def rebalance_for_right_delete
-      ret = self
+    def rebalance_for_right_delete(node)
       rebalance = false
-      if black?
-        if @left.black?
-          if @left.children_both_black?
-            @left.color = :RED
+      if node.black?
+        if node.left.black?
+          if node.left.children_both_black?
+            node.left.color = :RED
             rebalance = true
           else
-            ret = balanced_rotate_right
+            node = balanced_rotate_right(node)
           end
         else
-          ret = rotate_right
-          ret.right, rebalance = ret.right.rebalance_for_right_delete
+          node = rotate_right(node)
+          right, rebalance = rebalance_for_right_delete(node.right)
           raise 'should not happen' if rebalance
+          node = node.dup(node.left, right)
         end
       else # red
-        if @left.children_both_black?
-          color_flip(@left)
+        if node.left.children_both_black?
+          node.color_flip(node.left)
         else
-          ret = balanced_rotate_right
+          node = balanced_rotate_right(node)
         end
       end
-      [ret, rebalance]
+      [node, rebalance]
     end
 
     # move 1 black from the right to the left by single/double rotation
-    def balanced_rotate_left
-      if @right.left.red? and @right.right.black?
-        @right = @right.rotate_right
+    def balanced_rotate_left(node)
+      if node.right.left.red? and node.right.right.black?
+        node = node.dup(node.left, rotate_right(node.right))
       end
-      ret = rotate_left
-      ret.right.color = ret.left.color = :BLACK
-      ret
+      node = rotate_left(node)
+      node.right.color = node.left.color = :BLACK
+      node
     end
 
     # move 1 black from the left to the right by single/double rotation
-    def balanced_rotate_right
-      if @left.right.red? and @left.left.black?
-        @left = @left.rotate_left
+    def balanced_rotate_right(node)
+      if node.left.right.red? and node.left.left.black?
+        node = node.dup(rotate_left(node.left), node.right)
       end
-      ret = rotate_right
-      ret.right.color = ret.left.color = :BLACK
-      ret
+      node = rotate_right(node)
+      node.right.color = node.left.color = :BLACK
+      node
     end
 
     # Right single rotation
@@ -281,12 +284,9 @@ class RedBlackTree
     #    / \        / \
     #   c   E      a   c
     #
-    def rotate_left
-      root = @right
-      @right = root.left
-      root.left = self
-      root.color_flip(root.left)
-      root
+    def rotate_left(node)
+      left = node.dup(node.left, node.right.left, node.right.color)
+      node.right.dup(left, node.right.right, node.color)
     end
 
     # Left single rotation
@@ -298,12 +298,9 @@ class RedBlackTree
     #  / \            / \
     # A   c          c   e
     #
-    def rotate_right
-      root = @left
-      @left = root.right
-      root.right = self
-      root.color_flip(root.right)
-      root
+    def rotate_right(node)
+      right = node.dup(node.left.right, node.right, node.left.color)
+      node.left.dup(node.left.left, right, node.color)
     end
 
     # Pull up red nodes
@@ -325,50 +322,50 @@ class RedBlackTree
 
     # trying to rebalance when the left sub-tree is 1 level higher than the right
     # precondition: self is black and @left is red
-    def rebalance_for_left_insert
+    def rebalance_for_left_insert(node)
       # move 1 black from the left to the right by single/double rotation
-      if @left.right.red?
-        @left = @left.rotate_left
+      if node.left.right.red?
+        node = node.dup(rotate_left(node.left), node.right)
       end
-      rotate_right
+      rotate_right(node)
     end
 
     # trying to rebalance when the right sub-tree is 1 level higher than the left
     # See rebalance_for_left_insert.
-    def rebalance_for_right_insert
-      if @right.left.red?
-        @right = @right.rotate_right
+    def rebalance_for_right_insert(node)
+      if node.right.left.red?
+        node = node.dup(node.left, rotate_right(node.right))
       end
-      rotate_left
+      rotate_left(node)
     end
 
-    def delete_self
+    def delete_node(node)
       rebalance = false
-      if @left.empty? and @right.empty?
+      if node.left.empty? and node.right.empty?
         # just remove this node and ask rebalance to the parent
-        new_root = EMPTY
+        node = EMPTY
         if black?
           rebalance = true
         end
-      elsif @left.empty? or @right.empty?
+      elsif node.left.empty? or node.right.empty?
         # pick the single children
-        new_root = @left.empty? ? @right : @left
+        node = node.left.empty? ? node.right : node.left
         if black?
           # keep the color black
-          raise 'should not happen' unless new_root.red?
-          color_flip(new_root)
+          raise 'should not happen' unless node.red?
+          color_flip(node)
         else
           # just remove the red node
         end
       else
         # pick the minimum node from the right sub-tree and replace self with it
-        deleted, @right, rebalance = @right.delete_min
-        new_root = Node.new(deleted.key, deleted.value, @left, @right, @color)
+        deleted, right, rebalance = node.right.delete_min
+        node = deleted.dup(node.left, right, node.color)
         if rebalance
-          new_root, rebalance = new_root.rebalance_for_right_delete
+          node, rebalance = rebalance_for_right_delete(node)
         end
       end
-      [new_root, rebalance]
+      [node, rebalance]
     end
 
     def collect
@@ -435,6 +432,7 @@ class RedBlackTree
     @root = Node::EMPTY
     @default = default
     @default_proc = block
+    @writer_lock = Mutex.new
   end
 
   def empty?
@@ -491,8 +489,10 @@ class RedBlackTree
   end
 
   def []=(key, value)
-    @root = @root.insert(key, value)
-    @root.set_root
+    @writer_lock.synchronize do
+      @root = @root.insert(key, value)
+      @root.set_root
+    end
     @root.check_height if $DEBUG
   end
   alias insert []=
@@ -512,12 +512,14 @@ class RedBlackTree
   end
 
   def delete(key)
-    deleted, @root, rebalance = @root.delete(key)
-    unless empty?
-      @root.set_root
-      @root.check_height if $DEBUG
+    @writer_lock.synchronize do
+      deleted, @root, rebalance = @root.delete(key)
+      unless empty?
+        @root.set_root
+        @root.check_height if $DEBUG
+      end
+      deleted.value
     end
-    deleted.value
   end
 
   def dump_tree(io = '')
