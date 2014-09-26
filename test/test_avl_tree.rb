@@ -458,6 +458,43 @@ class TestAVLTree < Test::Unit::TestCase
     assert_equal [], h.values
   end
 
+  def test_height
+    h = AVLTree.new
+    assert_equal 0, h.height
+    h[1] = true
+    assert_equal 1, h.height
+    h[2] = true
+    assert_equal 2, h.height
+    h[3] = true
+    assert_equal 2, h.height
+    h[4] = true
+    assert_equal 3, h.height
+    h[5] = true
+    assert_equal 3, h.height
+    h[6] = true
+    assert_equal 3, h.height
+    h[7] = true
+    assert_equal 3, h.height
+    h[8] = true
+    assert_equal 4, h.height
+    h.delete(8)
+    assert_equal 3, h.height
+    h.delete(7)
+    assert_equal 3, h.height
+    h.delete(6)
+    assert_equal 3, h.height
+    h.delete(5)
+    assert_equal 3, h.height
+    h.delete(4)
+    assert_equal 2, h.height
+    h.delete(3)
+    assert_equal 2, h.height
+    h.delete(2)
+    assert_equal 1, h.height
+    h.delete(1)
+    assert_equal 0, h.height
+  end
+
   if RUBY_VERSION >= '1.9.0'
     # In contrast to RadixTree, AVLTree just uses String#<=> as-is
     def test_encoding
