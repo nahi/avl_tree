@@ -8,6 +8,6 @@ Gem::Specification.new { |s|
   s.homepage = 'http://github.com/nahi/avl_tree'
   s.platform = Gem::Platform::RUBY
   s.summary = 'AVL tree, Red black tree and Lock-free Red black tree in Ruby'
-  s.files = Dir.glob('{lib,bench,test}/**/*') + ['README']
+  s.files = Dir.glob('{lib,bench,test}/**/*') + ['README.md']
   s.require_path = 'lib'
 }
