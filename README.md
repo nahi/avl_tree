@@ -1,8 +1,10 @@
+# AVL tree, Red-black tree in Ruby
+
 avl_tree - AVL tree, Red-black tree and Lock-free Red black tree in Ruby
-Copyright (C) 2012 Hiroshi Nakamura <nahi@ruby-lang.org>
+Copyright (C) 2014 Hiroshi Nakamura <nahi@ruby-lang.org>
 
 
-# Usage
+## Usage
 
 You can use AVLTree, RedBlackTree or ConcurrentRedBlackTree just as a
 replacement of Hash.
@@ -26,14 +28,14 @@ replacement of Hash.
 
 AVLTree and RedBlackTree are faster but not thread-safe.  Use ConcurrentRedBlackTree in multi-thread environment.
 
-# Author
+## Author
 
 Name:: Hiroshi Nakamura
 E-mail:: nahi@ruby-lang.org
 Project web site:: http://github.com/nahi/avl_tree
 
 
-# License
+## License
 
 This program is copyrighted free software by Hiroshi Nakamura.  You can
 redistribute it and/or modify it under the same terms of Ruby's license;
