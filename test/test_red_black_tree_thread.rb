@@ -3,7 +3,7 @@ require File.expand_path('./helper', File.dirname(__FILE__))
 
 class TestRedBlackTree < Test::Unit::TestCase
   def test_thread
-    h = RedBlackTree.new
+    h = ConcurrentRedBlackTree.new
     num = 100000
     max = 1000
     threads = []
