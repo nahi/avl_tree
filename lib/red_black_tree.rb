@@ -1,3 +1,5 @@
+require 'atomic'
+
 class RedBlackTree
   include Enumerable
 
@@ -7,7 +9,7 @@ class RedBlackTree
     attr_reader :key, :value, :color
     attr_reader :left, :right
 
-    def initialize(key, value, left = EMPTY, right = EMPTY, color = :RED)
+    def initialize(key, value, left, right, color = :RED)
       @key = key
       @value = value
       @left = left
@@ -110,7 +112,7 @@ class RedBlackTree
         end
       when 0
         deleted = self
-        ret, rebalance = delete_self
+        ret, rebalance = delete_node
       when 1
         deleted, @right, rebalance = @right.delete(key)
         if rebalance
@@ -180,7 +182,7 @@ class RedBlackTree
 
     def delete_min
       if @left.empty?
-        [self, *delete_self]
+        [self, *delete_node]
       else
         ret = self
         deleted, @left, rebalance = @left.delete_min
@@ -342,7 +344,7 @@ class RedBlackTree
       rotate_left
     end
 
-    def delete_self
+    def delete_node
       rebalance = false
       if @left.empty? and @right.empty?
         # just remove this node and ask rebalance to the parent
@@ -399,7 +401,7 @@ class RedBlackTree
 
       # returns new_root
       def insert(key, value)
-        Node.new(key, value)
+        Node.new(key, value, self, self)
       end
 
       # returns value
@@ -437,53 +439,57 @@ class RedBlackTree
     @default_proc = block
   end
 
+  def root
+    @root
+  end
+
   def empty?
-    @root == Node::EMPTY
+    root == Node::EMPTY
   end
 
   def size
-    @root.size
+    root.size
   end
   alias length size
 
   def each(&block)
     if block_given?
-      @root.each(&block)
+      root.each(&block)
       self
     else
-      Enumerator.new(@root)
+      Enumerator.new(root)
     end
   end
   alias each_pair each
 
   def each_key
     if block_given?
-      @root.each do |k, v|
+      root.each do |k, v|
         yield k
       end
       self
     else
-      Enumerator.new(@root, :each_key)
+      Enumerator.new(root, :each_key)
     end
   end
 
   def each_value
     if block_given?
-      @root.each do |k, v|
+      root.each do |k, v|
         yield v
       end
       self
     else
-      Enumerator.new(@root, :each_value)
+      Enumerator.new(root, :each_value)
     end
   end
 
   def keys
-    @root.keys
+    root.keys
   end
 
   def values
-    @root.values
+    root.values
   end
 
   def clear
@@ -498,7 +504,7 @@ class RedBlackTree
   alias insert []=
 
   def key?(key)
-    @root.retrieve(key) != Node::UNDEFINED
+    root.retrieve(key) != Node::UNDEFINED
   end
   alias has_key? key?
 
@@ -521,13 +527,13 @@ class RedBlackTree
   end
 
   def dump_tree(io = '')
-    @root.dump_tree(io)
+    root.dump_tree(io)
     io << $/
     io
   end
 
   def dump_sexp
-    @root.dump_sexp || ''
+    root.dump_sexp || ''
   end
 
   def to_hash
@@ -544,5 +550,299 @@ private
     else
       nil
     end
+  end
+end
+
+class ConcurrentRedBlackTree < RedBlackTree
+  class ConcurrentNode < Node
+    # direction: ~LEFT == RIGHT, ~RIGHT == LEFT
+    LEFT = -1
+    RIGHT = 0
+
+    # @Overrides
+    def insert(key, value)
+      case key <=> @key
+      when -1
+        dir = LEFT
+      when 0
+        node = new_value(value)
+      when 1
+        dir = RIGHT
+      else
+        raise TypeError, "cannot compare #{key} and #{@key} with <=>"
+      end
+      if dir
+        target = child(dir).insert(key, value)
+        node = new_child(dir, target)
+        if black? and child(~dir).black? and target.red? and !target.children_both_black?
+          node = node.rebalance_for_insert(dir)
+        end
+      end
+      node.pullup_red
+    end
+
+    # @Overrides
+    def retrieve(key)
+      case key <=> @key
+      when -1
+        @left.retrieve(key)
+      when 0
+        @value
+      when 1
+        @right.retrieve(key)
+      else
+        nil
+      end
+    end
+
+    # @Overrides
+    def delete(key)
+      case key <=> @key
+      when -1
+        dir = LEFT
+      when 0
+        deleted = self
+        node, rebalance = delete_node
+      when 1
+        dir = RIGHT
+      else
+        raise TypeError, "cannot compare #{key} and #{@key} with <=>"
+      end
+      if dir
+        deleted, target, rebalance = child(dir).delete(key)
+        node = new_child(dir, target)
+        if rebalance
+          node, rebalance = node.rebalance_for_delete(dir)
+        end
+      end
+      [deleted, node, rebalance]
+    end
+
+  protected
+
+    def new_children(dir, node, other, color = @color)
+      dir == LEFT ? 
+        ConcurrentNode.new(@key, @value, node, other, color) :
+        ConcurrentNode.new(@key, @value, other, node, color)
+    end
+
+    def new_child(dir, node, color = @color)
+      dir == LEFT ? 
+        ConcurrentNode.new(@key, @value, node, @right, color) :
+        ConcurrentNode.new(@key, @value, @left, node, color)
+    end
+
+    def new_color(color)
+      ConcurrentNode.new(@key, @value, @left, @right, color)
+    end
+
+    def new_value(value)
+      ConcurrentNode.new(@key, value, @left, @right, @color)
+    end
+
+    def child(dir)
+      dir == LEFT ? @left : @right
+    end
+
+    # @Overrides
+    def delete_min
+      if @left.empty?
+        [self, *delete_node]
+      else
+        deleted, left, rebalance = @left.delete_min
+        node = new_child(LEFT, left)
+        if rebalance
+          node, rebalance = node.rebalance_for_delete(LEFT)
+        end
+        [deleted, node, rebalance]
+      end
+    end
+
+    # rebalance when the left/right sub-tree is 1 level lower than the right/left
+    def rebalance_for_delete(dir)
+      target = child(~dir)
+      rebalance = false
+      if black?
+        if target.black?
+          if target.children_both_black?
+            # make whole sub-tree 1 level lower and ask rebalance
+            node = new_child(~dir, target.new_color(:RED))
+            rebalance = true
+          else
+            # move 1 black from the right to the left by single/double rotation
+            node = balanced_rotate(dir)
+          end
+        else
+          # flip this sub-tree into another type of 3-children node
+          node = rotate(dir)
+          # try to rebalance in sub-tree
+          target, rebalance = node.child(dir).rebalance_for_delete(dir)
+          raise 'should not happen' if rebalance
+          node = node.new_children(dir, target, node.child(~dir))
+        end
+      else # red
+        if target.children_both_black?
+          # make right sub-tree 1 level lower
+          node = new_child(~dir, target.new_color(@color), target.color)
+        else
+          # move 1 black from the right to the left by single/double rotation
+          node = balanced_rotate(dir)
+        end
+      end
+      [node, rebalance]
+    end
+
+    # move 1 black from the right/left to the left/right by single/double rotation
+    def balanced_rotate(dir)
+      target = child(~dir)
+      if target.child(dir).red? and target.child(~dir).black?
+        node = new_child(~dir, target.rotate(~dir))
+      else
+        node = self
+      end
+      node = node.rotate(dir)
+      node.new_children(dir, node.child(dir).new_color(:BLACK), node.child(~dir).new_color(:BLACK))
+    end
+
+    # Right single rotation
+    # (b a (D c E)) where D and E are RED --> (d (B a c) E)
+    #
+    #   b              d
+    #  / \            / \
+    # a   D    ->    B   E
+    #    / \        / \
+    #   c   E      a   c
+    #
+    # Left single rotation
+    # (d (B A c) e) where A and B are RED --> (b A (D c e))
+    #
+    #     d          b
+    #    / \        / \
+    #   B   e  ->  A   D
+    #  / \            / \
+    # A   c          c   e
+    #
+    def rotate(dir)
+      new_root = child(~dir)
+      node = new_child(~dir, new_root.child(dir), new_root.color)
+      new_root.new_children(dir, node, new_root.child(~dir), @color)
+    end
+
+    # Pull up red nodes
+    # (b (A C)) where A and C are RED --> (B (a c))
+    #
+    #   b          B
+    #  / \   ->   / \
+    # A   C      a   c
+    #
+    # @Overrides
+    def pullup_red
+      if black? and @left.red? and @right.red?
+        new_children(LEFT, @left.new_color(:BLACK), @right.new_color(:BLACK), :RED)
+      else
+        self
+      end
+    end
+
+    # rebalance when the left/right sub-tree is 1 level higher than the right/left
+    # move 1 black from the left to the right by single/double rotation
+    #
+    # precondition: self is black and @left/@right is red
+    def rebalance_for_insert(dir)
+      node = self
+      if child(dir).child(~dir).red?
+        node = new_child(dir, child(dir).rotate(dir))
+      end
+      node.rotate(~dir)
+    end
+
+  private
+
+    # @Overrides
+    def delete_node
+      rebalance = false
+      if @left.empty? and @right.empty?
+        # just remove this node and ask rebalance to the parent
+        new_node = EMPTY_CONCURRENT
+        if black?
+          rebalance = true
+        end
+      elsif @left.empty? or @right.empty?
+        # pick the single children
+        new_node = @left.empty? ? @right : @left
+        if black?
+          # keep the color black
+          raise 'should not happen' unless new_node.red?
+          new_node = new_node.new_color(@color)
+        else
+          # just remove the red node
+        end
+      else
+        # pick the minimum node from the right sub-tree and replace self with it
+        deleted, right, rebalance = @right.delete_min
+        new_node = deleted.new_children(LEFT, @left, right, @color)
+        if rebalance
+          new_node, rebalance = new_node.rebalance_for_delete(RIGHT)
+        end
+      end
+      [new_node, rebalance]
+    end
+
+    class EmptyConcurrentNode < EmptyNode
+      # @Overrides
+      def insert(key, value)
+        ConcurrentNode.new(key, value, self, self)
+      end
+    end
+    EMPTY_CONCURRENT = ConcurrentNode::EmptyConcurrentNode.new.freeze
+  end
+
+  def initialize(default = DEFAULT, &block)
+    super
+    @root = Atomic.new(ConcurrentNode::EMPTY_CONCURRENT)
+  end
+
+  def root
+    @root.get
+  end
+
+  def empty?
+    root == ConcurrentNode::EMPTY_CONCURRENT
+  end
+
+  def clear
+    @root.set(ConcurrentNode::EMPTY_CONCURRENT)
+  end
+
+  def []=(key, value)
+    @root.update { |root|
+      root = root.insert(key, value)
+      root.set_root
+      root.check_height if $DEBUG
+      root
+    }
+  end
+  alias insert []=
+
+  def [](key)
+    value = @root.get.retrieve(key)
+    if value == Node::UNDEFINED
+      default_value
+    else
+      value
+    end
+  end
+
+  def delete(key)
+    deleted = nil
+    @root.update { |root|
+      deleted, root, rebalance = root.delete(key)
+      unless root == ConcurrentNode::EMPTY_CONCURRENT
+        root.set_root
+        root.check_height if $DEBUG
+      end
+      root
+    }
+    deleted.value
   end
 end

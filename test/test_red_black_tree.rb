@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 require File.expand_path('./helper', File.dirname(__FILE__))
 
-class TestRedBlackTree < Test::Unit::TestCase
+module RedBlackTreeTest
   def __test_random
-    h = RedBlackTree.new
+    h = create_test_target
     10000.times do |idx|
       key = rand(100)
       h[key] = key
@@ -13,7 +13,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_tree_rotate_RR
-    h = RedBlackTree.new
+    h = create_test_target
     assert_equal '', h.dump_sexp
     h['a'] = 1
     assert_equal 'a', h.dump_sexp
@@ -28,7 +28,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_tree_rotate_LL
-    h = RedBlackTree.new
+    h = create_test_target
     h['e'] = 1
     h['d'] = 2
     assert_equal '(e d)', h.dump_sexp
@@ -41,7 +41,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_tree_rotate_RL
-    h = RedBlackTree.new
+    h = create_test_target
     h['b'] = 1
     h['a'] = 2
     h['g'] = 3
@@ -57,7 +57,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_tree_rotate_LR
-    h = RedBlackTree.new
+    h = create_test_target
     h['g'] = 1
     h['b'] = 2
     h['h'] = 3
@@ -73,13 +73,13 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_aref_nil
-    h = RedBlackTree.new
+    h = create_test_target
     h['abc'] = 1
     assert_equal nil, h['def']
   end
 
   def test_empty
-    h = RedBlackTree.new
+    h = create_test_target
     h['abc'] = 0
     assert_equal nil, h['']
     h[''] = 1
@@ -89,13 +89,13 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_aref_single
-    h = RedBlackTree.new
+    h = create_test_target
     h['abc'] = 1
     assert_equal 1, h['abc']
   end
 
   def test_aref_double
-    h = RedBlackTree.new
+    h = create_test_target
     h['abc'] = 1
     h['def'] = 2
     assert_equal 1, h['abc']
@@ -103,14 +103,14 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_aset_override
-    h = RedBlackTree.new
+    h = create_test_target
     h['abc'] = 1
     h['abc'] = 2
     assert_equal 2, h['abc']
   end
 
   def test_split
-    h = RedBlackTree.new
+    h = create_test_target
     h['abcd'] = 1
     assert_equal 1, h['abcd']
     h['abce'] = 2
@@ -128,7 +128,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_split_and_assign
-    h = RedBlackTree.new
+    h = create_test_target
     h['ab'] = 1
     h['a'] = 2
     assert_equal 1, h['ab']
@@ -136,7 +136,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_push
-    h = RedBlackTree.new
+    h = create_test_target
     assert_equal 0, h.size
     h['a'] = 1
     assert_equal 1, h['a']
@@ -170,7 +170,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_different_type
-    h = RedBlackTree.new
+    h = create_test_target
     h['a'] = 1
     assert_raise(TypeError) do
       h[3.3] = 2
@@ -179,7 +179,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_leaf
-    h = RedBlackTree.new
+    h = create_test_target
     h['b'] = 1
     h['a'] = 2
     h['c'] = 3
@@ -189,7 +189,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_leaf_single_rotation
-    h = RedBlackTree.new
+    h = create_test_target
     h['b'] = 1
     h['a'] = 2
     h['d'] = 3
@@ -201,7 +201,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_leaf_single_rotation_right
-    h = RedBlackTree.new
+    h = create_test_target
     h['d'] = 1
     h['e'] = 2
     h['b'] = 3
@@ -213,7 +213,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_leaf_double_rotation
-    h = RedBlackTree.new
+    h = create_test_target
     h['b'] = 1
     h['a'] = 2
     h['e'] = 3
@@ -229,7 +229,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_leaf_double_rotation_right
-    h = RedBlackTree.new
+    h = create_test_target
     h['d'] = 1
     h['e'] = 2
     h['a'] = 3
@@ -245,7 +245,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_node_right
-    h = RedBlackTree.new
+    h = create_test_target
     h['c'] = 1
     h['b'] = 2
     h['g'] = 3
@@ -262,7 +262,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_node_left
-    h = RedBlackTree.new
+    h = create_test_target
     h['h'] = 1
     h['i'] = 2
     h['d'] = 3
@@ -279,7 +279,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_root
-    h = RedBlackTree.new
+    h = create_test_target
     h['b'] = 1
     h['a'] = 2
     h['c'] = 3
@@ -291,7 +291,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete
-    h = RedBlackTree.new
+    h = create_test_target
     h['a'] = 1
     h['ab'] = 2
     h['abc'] = 3
@@ -337,7 +337,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_right
-    h = RedBlackTree.new
+    h = create_test_target
     h['f'] = 1
     h['e'] = 2
     h['d'] = 3
@@ -383,7 +383,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_compaction_middle
-    h = RedBlackTree.new
+    h = create_test_target
     h['a'] = 1
     h['abc'] = 2
     h['bb'] = 3
@@ -398,7 +398,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_compaction_leaf
-    h = RedBlackTree.new
+    h = create_test_target
     h['a'] = 1
     h['abc'] = 2
     h['bb'] = 3
@@ -413,7 +413,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_balanced_rotate_left
-    h = RedBlackTree.new
+    h = create_test_target
     h['f'] = 1
     h['c'] = 100
     h['l'] = 1
@@ -440,7 +440,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_balanced_rotate_right
-    h = RedBlackTree.new
+    h = create_test_target
     h['i'] = 1
     h['l'] = 100
     h['c'] = 1
@@ -467,7 +467,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_delete_different_type
-    h = RedBlackTree.new
+    h = create_test_target
     h['a'] = 1
     h['abc'] = 2
     h['bb'] = 3
@@ -478,7 +478,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_each
-    h = RedBlackTree.new
+    h = create_test_target
     s = { 'aa' => 1, 'ab' => 2, 'bb' => 3, 'bc' => 4, 'a' => 5, 'abc' => 6 }
     s.each do |k, v|
       h[k] = v
@@ -493,7 +493,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_each_key
-    h = RedBlackTree.new
+    h = create_test_target
     s = { 'aa' => 1, 'ab' => 2, 'bb' => 3, 'bc' => 4, 'a' => 5, 'abc' => 6 }
     s.each do |k, v|
       h[k] = v
@@ -508,7 +508,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_each_value
-    h = RedBlackTree.new
+    h = create_test_target
     s = { 'aa' => 1, 'ab' => 2, 'bb' => 3, 'bc' => 4, 'a' => 5, 'abc' => 6, 'azzzzz' => 6 }
     s.each do |k, v|
       h[k] = v
@@ -523,7 +523,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_keys
-    h = RedBlackTree.new
+    h = create_test_target
     s = { 'aa' => 1, 'ab' => 2, 'bb' => 3, 'bc' => 4, 'a' => 5, 'abc' => 6 }
     s.each do |k, v|
       h[k] = v
@@ -532,7 +532,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_values
-    h = RedBlackTree.new
+    h = create_test_target
     s = { 'aa' => 1, 'ab' => 2, 'bb' => 3, 'bc' => 4, 'a' => 5, 'abc' => 6 }
     s.each do |k, v|
       h[k] = v
@@ -541,14 +541,14 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_to_s
-    h = RedBlackTree.new
+    h = create_test_target
     h[5] = 1
     assert_equal 1, h[5]
     assert_nil h["5"]
   end
 
   def test_key?
-    h = RedBlackTree.new
+    h = create_test_target
     assert !h.key?('a')
     s = { 'aa' => 1, 'ab' => 2, 'bb' => 3, 'bc' => 4, 'a' => 5, 'abc' => 6 }
     s.each do |k, v|
@@ -559,22 +559,22 @@ class TestRedBlackTree < Test::Unit::TestCase
 
   def test_default
     assert_raise(ArgumentError) do
-      RedBlackTree.new('both') { :not_allowed }
+      create_test_target('both') { :not_allowed }
     end
 
-    h = RedBlackTree.new('abc')
+    h = create_test_target('abc')
     assert_equal 'abc', h['foo']
     assert_equal 'abc', h['bar']
     assert h['baz'].object_id == h['qux'].object_id
 
-    h = RedBlackTree.new { [1, 2] }
+    h = create_test_target { [1, 2] }
     assert_equal [1, 2], h['foo']
     assert_equal [1, 2], h['bar']
     assert h['baz'].object_id != h['qux'].object_id
   end
 
   def test_to_hash
-    h = RedBlackTree.new
+    h = create_test_target
     s = { 'aa' => 1, 'ab' => 2, 'bb' => 3, 'bc' => 4, 'a' => 5, 'abc' => 6 }
     s.each do |k, v|
       h[k] = v
@@ -583,7 +583,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_clear
-    h = RedBlackTree.new
+    h = create_test_target
     s = { 'aa' => 1, 'ab' => 2, 'bb' => 3, 'bc' => 4, 'a' => 5, 'abc' => 6 }
     s.each do |k, v|
       h[k] = v
@@ -595,7 +595,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_non_string_keys
-    h = RedBlackTree.new
+    h = create_test_target
     h[1.3] = 'a'
     h[4.3] = 'b'
 
@@ -603,7 +603,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   end
 
   def test_values_for_empty_tree
-    h = RedBlackTree.new
+    h = create_test_target
 
     assert_equal [], h.values
   end
@@ -611,7 +611,7 @@ class TestRedBlackTree < Test::Unit::TestCase
   if RUBY_VERSION >= '1.9.0'
     # In contrast to RadixTree, RedBlackTree just uses String#<=> as-is
     def test_encoding
-      h = RedBlackTree.new
+      h = create_test_target
       s = { 'ああ' => 1, 'あい' => 2, 'いい' => 3, 'いう' => 4, 'あ' => 5, 'あいう' => 6 }
       s.each do |k, v|
         h[k] = v
@@ -625,5 +625,21 @@ class TestRedBlackTree < Test::Unit::TestCase
       # it's nil for RadixTree because RadixTree uses char-to-char comparison
       assert_equal 1, h[str]
     end
+  end
+end
+
+class TestRedBlackTree < Test::Unit::TestCase
+  include RedBlackTreeTest
+
+  def create_test_target(*a, &b)
+    RedBlackTree.new(*a, &b)
+  end
+end
+
+class TestConcurrentRedBlackTree < Test::Unit::TestCase
+  include RedBlackTreeTest
+
+  def create_test_target(*a, &b)
+    ConcurrentRedBlackTree.new(*a, &b)
   end
 end
