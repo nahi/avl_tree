@@ -71,14 +71,14 @@ class RedBlackTree
       case key <=> @key
       when -1
         @left = @left.insert(key, value)
-        if black? and @right.black? and @left.red? and !@left.children_both_black?
+        if black? and @right.black? and @left.red? and !@left.children_color?(:BLACK)
           ret = rebalance_for_left_insert
         end
       when 0
         @value = value
       when 1
         @right = @right.insert(key, value)
-        if black? and @left.black? and @right.red? and !@right.children_both_black?
+        if black? and @left.black? and @right.red? and !@right.children_color?(:BLACK)
           ret = rebalance_for_right_insert
         end
       else
@@ -160,8 +160,8 @@ class RedBlackTree
 
   protected
 
-    def children_both_black?
-      @right.black? and @left.black?
+    def children_color?(color)
+      @right.color == @left.color && @right.color == color
     end
 
     def color=(color)
@@ -199,7 +199,7 @@ class RedBlackTree
       rebalance = false
       if black?
         if @right.black?
-          if @right.children_both_black?
+          if @right.children_color?(:BLACK)
             # make whole sub-tree 1 level lower and ask rebalance
             @right.color = :RED
             rebalance = true
@@ -215,7 +215,7 @@ class RedBlackTree
           raise 'should not happen' if rebalance
         end
       else # red
-        if @right.children_both_black?
+        if @right.children_color?(:BLACK)
           # make right sub-tree 1 level lower
           color_flip(@right)
         else
@@ -233,7 +233,7 @@ class RedBlackTree
       rebalance = false
       if black?
         if @left.black?
-          if @left.children_both_black?
+          if @left.children_color?(:BLACK)
             @left.color = :RED
             rebalance = true
           else
@@ -245,7 +245,7 @@ class RedBlackTree
           raise 'should not happen' if rebalance
         end
       else # red
-        if @left.children_both_black?
+        if @left.children_color?(:BLACK)
           color_flip(@left)
         else
           ret = balanced_rotate_right
@@ -316,7 +316,7 @@ class RedBlackTree
     # A   C      a   c
     #
     def pullup_red
-      if black? and @left.red? and @right.red?
+      if black? and children_color?(:RED)
         @left.color = @right.color = :BLACK
         self.color = :RED
       end
@@ -574,7 +574,7 @@ class ConcurrentRedBlackTree < RedBlackTree
       if dir
         target = child(dir).insert(key, value)
         node = new_child(dir, target)
-        if black? and child(~dir).black? and target.red? and !target.children_both_black?
+        if black? and child(~dir).black? and target.red? and !target.children_color?(:BLACK)
           node = node.rebalance_for_insert(dir)
         end
       end
@@ -664,7 +664,7 @@ class ConcurrentRedBlackTree < RedBlackTree
       rebalance = false
       if black?
         if target.black?
-          if target.children_both_black?
+          if target.children_color?(:BLACK)
             # make whole sub-tree 1 level lower and ask rebalance
             node = new_child(~dir, target.new_color(:RED))
             rebalance = true
@@ -681,7 +681,7 @@ class ConcurrentRedBlackTree < RedBlackTree
           node = node.new_children(dir, target, node.child(~dir))
         end
       else # red
-        if target.children_both_black?
+        if target.children_color?(:BLACK)
           # make right sub-tree 1 level lower
           node = new_child(~dir, target.new_color(@color), target.color)
         else
