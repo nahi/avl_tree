@@ -572,9 +572,9 @@ class ConcurrentRedBlackTree < RedBlackTree
         raise TypeError, "cannot compare #{key} and #{@key} with <=>"
       end
       if dir
-        new_child = link(dir).insert(key, value)
-        node = new_link(dir, new_child)
-        if black? and link(~dir).black? and new_child.red? and !new_child.children_both_black?
+        target = child(dir).insert(key, value)
+        node = new_child(dir, target)
+        if black? and child(~dir).black? and target.red? and !target.children_both_black?
           node = node.rebalance_for_insert(dir)
         end
       end
@@ -609,8 +609,8 @@ class ConcurrentRedBlackTree < RedBlackTree
         raise TypeError, "cannot compare #{key} and #{@key} with <=>"
       end
       if dir
-        deleted, new_child, rebalance = link(dir).delete(key)
-        node = new_link(dir, new_child)
+        deleted, target, rebalance = child(dir).delete(key)
+        node = new_child(dir, target)
         if rebalance
           node, rebalance = node.rebalance_for_delete(dir)
         end
@@ -620,13 +620,13 @@ class ConcurrentRedBlackTree < RedBlackTree
 
   protected
 
-    def new_links(dir, node, other, color = @color)
+    def new_children(dir, node, other, color = @color)
       dir == LEFT ? 
         ConcurrentNode.new(@key, @value, node, other, color) :
         ConcurrentNode.new(@key, @value, other, node, color)
     end
 
-    def new_link(dir, node, color = @color)
+    def new_child(dir, node, color = @color)
       dir == LEFT ? 
         ConcurrentNode.new(@key, @value, node, @right, color) :
         ConcurrentNode.new(@key, @value, @left, node, color)
@@ -640,7 +640,7 @@ class ConcurrentRedBlackTree < RedBlackTree
       ConcurrentNode.new(@key, value, @left, @right, @color)
     end
 
-    def link(dir)
+    def child(dir)
       dir == LEFT ? @left : @right
     end
 
@@ -650,7 +650,7 @@ class ConcurrentRedBlackTree < RedBlackTree
         [self, *delete_node]
       else
         deleted, left, rebalance = @left.delete_min
-        node = new_link(LEFT, left)
+        node = new_child(LEFT, left)
         if rebalance
           node, rebalance = node.rebalance_for_delete(LEFT)
         end
@@ -660,13 +660,13 @@ class ConcurrentRedBlackTree < RedBlackTree
 
     # rebalance when the left/right sub-tree is 1 level lower than the right/left
     def rebalance_for_delete(dir)
-      other = link(~dir)
+      target = child(~dir)
       rebalance = false
       if black?
-        if other.black?
-          if other.children_both_black?
+        if target.black?
+          if target.children_both_black?
             # make whole sub-tree 1 level lower and ask rebalance
-            node = new_link(~dir, other.new_color(:RED))
+            node = new_child(~dir, target.new_color(:RED))
             rebalance = true
           else
             # move 1 black from the right to the left by single/double rotation
@@ -676,14 +676,14 @@ class ConcurrentRedBlackTree < RedBlackTree
           # flip this sub-tree into another type of 3-children node
           node = rotate(dir)
           # try to rebalance in sub-tree
-          new_child, rebalance = node.link(dir).rebalance_for_delete(dir)
+          target, rebalance = node.child(dir).rebalance_for_delete(dir)
           raise 'should not happen' if rebalance
-          node = node.new_links(dir, new_child, node.link(~dir))
+          node = node.new_children(dir, target, node.child(~dir))
         end
       else # red
-        if other.children_both_black?
+        if target.children_both_black?
           # make right sub-tree 1 level lower
-          node = new_link(~dir, other.new_color(@color), other.color)
+          node = new_child(~dir, target.new_color(@color), target.color)
         else
           # move 1 black from the right to the left by single/double rotation
           node = balanced_rotate(dir)
@@ -694,14 +694,14 @@ class ConcurrentRedBlackTree < RedBlackTree
 
     # move 1 black from the right/left to the left/right by single/double rotation
     def balanced_rotate(dir)
-      other = link(~dir)
-      if other.link(dir).red? and other.link(~dir).black?
-        node = new_link(~dir, other.rotate(~dir))
+      target = child(~dir)
+      if target.child(dir).red? and target.child(~dir).black?
+        node = new_child(~dir, target.rotate(~dir))
       else
         node = self
       end
       node = node.rotate(dir)
-      node.new_links(dir, node.link(dir).new_color(:BLACK), node.link(~dir).new_color(:BLACK))
+      node.new_children(dir, node.child(dir).new_color(:BLACK), node.child(~dir).new_color(:BLACK))
     end
 
     # Right single rotation
@@ -723,9 +723,9 @@ class ConcurrentRedBlackTree < RedBlackTree
     # A   c          c   e
     #
     def rotate(dir)
-      rev = ~dir
-      node = new_link(rev, link(rev).link(dir), link(rev).color)
-      link(rev).new_links(dir, node, link(rev).link(rev), @color)
+      new_root = child(~dir)
+      node = new_child(~dir, new_root.child(dir), new_root.color)
+      new_root.new_children(dir, node, new_root.child(~dir), @color)
     end
 
     # Pull up red nodes
@@ -738,7 +738,7 @@ class ConcurrentRedBlackTree < RedBlackTree
     # @Overrides
     def pullup_red
       if black? and @left.red? and @right.red?
-        new_links(LEFT, @left.new_color(:BLACK), @right.new_color(:BLACK), :RED)
+        new_children(LEFT, @left.new_color(:BLACK), @right.new_color(:BLACK), :RED)
       else
         self
       end
@@ -750,8 +750,8 @@ class ConcurrentRedBlackTree < RedBlackTree
     # precondition: self is black and @left/@right is red
     def rebalance_for_insert(dir)
       node = self
-      if link(dir).link(~dir).red?
-        node = new_link(dir, link(dir).rotate(dir))
+      if child(dir).child(~dir).red?
+        node = new_child(dir, child(dir).rotate(dir))
       end
       node.rotate(~dir)
     end
@@ -780,7 +780,7 @@ class ConcurrentRedBlackTree < RedBlackTree
       else
         # pick the minimum node from the right sub-tree and replace self with it
         deleted, right, rebalance = @right.delete_min
-        new_node = deleted.new_links(LEFT, @left, right, @color)
+        new_node = deleted.new_children(LEFT, @left, right, @color)
         if rebalance
           new_node, rebalance = new_node.rebalance_for_delete(RIGHT)
         end
