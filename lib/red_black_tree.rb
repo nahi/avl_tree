@@ -77,15 +77,17 @@ class RedBlackTree
     def insert(key, value)
       case key <=> @key
       when -1
-        node = self.dup(@left.insert(key, value), @right)
-        if node.black? and node.right.black? and node.left.red? and !node.left.children_both_black?
+        left = @left.insert(key, value)
+        node = self.dup(left, @right)
+        if black? and @right.black? and left.red? and !left.children_both_black?
           node = node.rebalance_for_left_insert
         end
       when 0
         node = Node.new(@key, value, @left, @right, @color)
       when 1
-        node = self.dup(@left, @right.insert(key, value))
-        if node.black? and node.left.black? and node.right.red? and !node.right.children_both_black?
+        right = @right.insert(key, value)
+        node = self.dup(@left, right)
+        if black? and @left.black? and right.red? and !right.children_both_black?
           node = node.rebalance_for_right_insert
         end
       else
