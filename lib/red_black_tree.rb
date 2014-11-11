@@ -142,8 +142,8 @@ class RedBlackTree
 
     # for debugging
     def check_height
-      lh = @left.empty? ? 0 : @left.check_height
-      rh = @right.empty? ? 0 : @right.check_height
+      lh = @left.nil?  || @left.empty? ? 0 : @left.check_height
+      rh = @right.nil? || @right.empty? ? 0 : @right.check_height
       if red?
         if @left.red? or @right.red?
           puts dump_tree(STDERR)
