@@ -608,6 +608,12 @@ module RedBlackTreeTest
     assert_equal [], h.values
   end
 
+  def test_check_height_on_empty_tree
+    h = create_test_target
+
+    assert_nothing_raised { h.root.check_height }
+  end
+
   if RUBY_VERSION >= '1.9.0'
     # In contrast to RadixTree, RedBlackTree just uses String#<=> as-is
     def test_encoding
