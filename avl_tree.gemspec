@@ -1,7 +1,7 @@
 require 'rubygems'
 Gem::Specification.new { |s|
   s.name = 'avl_tree'
-  s.version = '1.2.0'
+  s.version = '1.2.1'
   s.date = '2014-09-28'
   s.author = 'Hiroshi Nakamura'
   s.email = 'nahi@ruby-lang.org'
