@@ -323,7 +323,7 @@ class AVLTree
       @root.each(&block)
       self
     else
-      Enumerator.new(@root)
+      @root.to_enum
     end
   end
   alias each_pair each
@@ -335,7 +335,7 @@ class AVLTree
       end
       self
     else
-      Enumerator.new(@root, :each_key)
+      @root.to_enum(:each_key)
     end
   end
 
@@ -346,7 +346,7 @@ class AVLTree
       end
       self
     else
-      Enumerator.new(@root, :each_value)
+      @root.to_enum(:each_value)
     end
   end
 
