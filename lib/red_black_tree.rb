@@ -511,7 +511,7 @@ class RedBlackTree
   def [](key)
     value = @root.retrieve(key)
     if value == Node::UNDEFINED
-      default_value
+      default_value(key)
     else
       value
     end
@@ -542,11 +542,11 @@ class RedBlackTree
 
 private
 
-  def default_value
+  def default_value(key)
     if @default != DEFAULT
       @default
     elsif @default_proc
-      @default_proc.call
+      @default_proc.call(self, key)
     else
       nil
     end
@@ -827,7 +827,7 @@ class ConcurrentRedBlackTree < RedBlackTree
   def [](key)
     value = @root.get.retrieve(key)
     if value == Node::UNDEFINED
-      default_value
+      default_value(key)
     else
       value
     end
