@@ -566,11 +566,17 @@ module RedBlackTreeTest
     assert_equal 'abc', h['foo']
     assert_equal 'abc', h['bar']
     assert h['baz'].object_id == h['qux'].object_id
+    assert_equal [], h.keys
 
     h = create_test_target { [1, 2] }
     assert_equal [1, 2], h['foo']
     assert_equal [1, 2], h['bar']
     assert h['baz'].object_id != h['qux'].object_id
+
+    h = create_test_target { |h, k| h[k] = [] }
+    h[:a] << 'foo'
+    assert_equal h.keys, [:a]
+    assert_equal h[:a], ['foo']
   end
 
   def test_to_hash
