@@ -1,6 +1,6 @@
 Ruby is copyrighted free software by Yukihiro Matsumoto <matz@netlab.jp>.
 You can redistribute it and/or modify it under either the terms of the
-2-clause BSDL (see the file LICSENSE.BSD), or the conditions below:
+2-clause BSDL (see the file LICENSE.BSD), or the conditions below:
 
   1. You may make and give away verbatim copies of the source form of the
      software without restriction, provided that you duplicate all of the
