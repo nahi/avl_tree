@@ -176,7 +176,7 @@ class AVLTree
       root
     end
 
-    # Right single rotation
+    # Left single rotation
     # (B a (D c E)) where D-a > 1 && E > c --> (D (B a c) E)
     #
     #   B              D
@@ -193,7 +193,7 @@ class AVLTree
       root
     end
 
-    # Left single rotation
+    # Right single rotation
     # (D (B A c) e) where B-e > 1 && A > c --> (B A (D c e))
     #
     #     D          B
