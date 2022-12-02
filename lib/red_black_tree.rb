@@ -457,7 +457,7 @@ class RedBlackTree
       root.each(&block)
       self
     else
-      Enumerator.new(root)
+      root.enum_for(:each)
     end
   end
   alias each_pair each
@@ -469,7 +469,7 @@ class RedBlackTree
       end
       self
     else
-      Enumerator.new(root, :each_key)
+      root.enum_for(:each_key)
     end
   end
 
@@ -480,7 +480,7 @@ class RedBlackTree
       end
       self
     else
-      Enumerator.new(root, :each_value)
+      root.enum_for(:each_value)
     end
   end
 
